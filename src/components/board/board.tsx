@@ -2,8 +2,8 @@ import { BoardProps, ScreenProps, SquareProps } from "./interface";
 import './board.css';
 import { useState } from "react";
 import { url } from "inspector";
-const OLink= 'https://img.freepik.com/premium-vector/graffiti-spray-paint-alphabet-o-isolated-vector_804425-731.jpg';
-const XLink= 'https://media.istockphoto.com/id/1201202836/vector/dirty-grunge-hand-drawn-with-brush-strokes-cross-x-vector-illustration-isolated-on-white.jpg?s=612x612&w=0&k=20&c=gt_7zKbzu7yaUhtA10wzTSfIdkdqHrOlNAY65lqYWa8=';
+const oLink= 'https://img.freepik.com/premium-vector/graffiti-spray-paint-alphabet-o-isolated-vector_804425-731.jpg';
+const xLink= 'https://media.istockphoto.com/id/1201202836/vector/dirty-grunge-hand-drawn-with-brush-strokes-cross-x-vector-illustration-isolated-on-white.jpg?s=612x612&w=0&k=20&c=gt_7zKbzu7yaUhtA10wzTSfIdkdqHrOlNAY65lqYWa8=';
 const rowCount = 5, colCount = 5;
 const winCondition= 4;
 const data=( row :number, col :number)=>{
@@ -17,79 +17,51 @@ const data=( row :number, col :number)=>{
     }
     return grid;
 }
-const checkWin = ( grid: string[][], player: string, row :number, col : number): boolean => {
-    const circumstances=[
-        {
-            key: 'vertical',
-            up: {xUp:1,yUp:1},
-            down: {xDown:-1,yDown:-1}      
-        },
-        {
-            key: 'horizontal',
-            up: {xUp:1,yUp:0},
-            down: {xDown:-1,yDown:0}
-        },
-        {
-            key: 'diagonal',
-            up: {xUp:1,yUp:1},
-            down: {xDown:-1,yDown:-1}
-        },
-        {
-            key: 'antiDiagonal',
-            up: {xUp:1,yUp:-1},
-            down: {xDown:-1,yDown:1}
-           
-        }
+const checkDirection = ( grid: string[][], player: string, row: number, col: number, deltaRow :number, deltaCol: number) => {
+    let count = 0;
+    let tempRow = row, tempCol = col;
+
+    while (true) {
+        tempRow += deltaRow;
+        tempCol += deltaCol;
+        if (tempRow < 0 || tempRow >= rowCount || tempCol < 0 || tempCol >= colCount) break;
+        if (grid[tempRow][tempCol] !== player) break;
+        count++;
+    }
+    return count;
+};
+const checkWin = (grid: string[][], player: string, row: number, col: number) => {
+    const directions = [
+        { row: 1, col: 0 }, 
+        { row: 0, col: 1 },
+        { row: 1, col: 1 },
+        { row: 1, col: -1 } 
     ];
-    let count=1, tempRow=row, tempCol=col;
-    for(let circumstance of circumstances){
-        count=1;
-        const {xUp,yUp}= circumstance.up;
-        while(true){
-            tempRow+= xUp;
-            tempCol+= yUp;
-            if(( tempRow <0 || tempRow >= rowCount ) || ( tempCol <0 || tempCol >= colCount )) break;
-            if( grid[tempRow][tempCol] !== player) break;
-            if( grid[tempRow][tempCol] === player) count+=1;
-            
-        }
-        tempRow= row;
-        tempCol= col;
-        const { xDown, yDown}= circumstance.down;
-        while(true){
-            tempRow+= xDown;
-            tempCol+= yDown;
-            if(( tempRow < 0 || tempRow >= rowCount ) || ( tempCol < 0 || tempCol >= colCount )) break;
-            if( grid[tempRow][tempCol] !== player ) break;
-            if( grid[tempRow][tempCol] === player) count+=1;
-           
-        }
-        tempRow= row;
-        tempCol= col;
-        if( count === winCondition) 
-            return true;
+    
+    for (const { row: deltaRow, col: deltaCol } of directions) {
+        const totalCount = checkDirection(grid, player, row, col, deltaRow, deltaCol)
+                        + checkDirection(grid, player, row, col, -deltaRow, -deltaCol) + 1; 
+        if (totalCount >= winCondition) return true;
     }
     return false;
+};
 
-    
-    
+const Square=({
+    value,
+    onClick, ...rest
+}: SquareProps)=>{
+    return(
+        <button style={
+            {
+                backgroundImage:value ? `url(${value ==='X'? xLink : oLink})`: 'none',
+                backgroundSize: 'cover', 
+                backgroundPosition: 'center' 
+            }} className="square" onClick={ onClick} >
+            
+        </button>
+    );
 }
-  
-const Game=()=>{
-    const [ grid, setGrid]=useState( data( rowCount, colCount));
-    const [ turn, setTurn]=useState( true);
-    function handleReset(){
-        setGrid( data( rowCount, colCount));
-    }
-    
-    return (
-        <div>
-            <Screen title={ turn ? 'X' : 'O'}/>
-            <Board turn={ turn} setTurn={ setTurn} moves={ grid} handleCheck={ setGrid}/>
-            <button onClick={ handleReset }> Reset</button>
-        </div>
-    )
-}
+
 const Screen=({
     title
 }:ScreenProps)=>{
@@ -97,20 +69,26 @@ const Screen=({
         <h1> Turn { title }</h1>
     );
 }
+
+
 const Board=({
-    turn, setTurn,
+    turn, 
+    setTurn,
     moves,
-    handleCheck
+    handleCheck,
+    victory, 
+    setVictory
 }:BoardProps)=>{
     const handleBoard= (row: number, col: number )=>{
-        const newData= [...moves];
-        if( newData[row][col].length > 0 ) return;
+        if(victory)return;
+        if( moves[row][col].length > 0 ) return;
+        const newData= [...moves]; 
         const mark = turn ? 'X' : 'O';
         newData[row][col] = mark;
         handleCheck( newData);
         if(checkWin( newData, mark, row, col )){
-            alert( mark+' is victory');
-            return;
+            alert(turn ? 'X' : 'O')
+            setVictory(turn ? 'X' : 'O');
         }  
         setTurn( !turn );
     }
@@ -133,21 +111,29 @@ const Board=({
     )
 };
 
-
-const Square=({
-    value,
-    onClick, ...rest
-}: SquareProps)=>{
-    return(
-        <button style={
-            {
-                backgroundImage:value ? `url(${value ==='X'? XLink : OLink})`: 'none',
-                backgroundSize: 'cover', 
-                backgroundPosition: 'center' 
-            }} className="square" onClick={ onClick} >
-            
-        </button>
-    );
+const Game=()=>{
+    const [ moves, setMoves]=useState<string[][]>(data( rowCount, colCount));
+    const [victory, setVictory]= useState<string>();
+    const [ turn, setTurn]=useState( true);
+    function handleReset(){
+        setMoves( data( rowCount, colCount));
+        setVictory(undefined);
+        setTurn(true);
+    }
+    return (
+        <div>
+            <Screen title={ turn ? 'X' : 'O'}/>
+            <Board 
+                turn={ turn} 
+                setTurn={ setTurn} 
+                moves={ moves} 
+                handleCheck={ setMoves}
+                victory={victory}
+                setVictory={setVictory}
+                />
+            <button onClick={ handleReset }> Reset</button>
+        </div>
+    )
 }
 
 export default Game;
