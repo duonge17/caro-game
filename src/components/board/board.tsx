@@ -63,29 +63,31 @@ const Square=({
 }
 
 const Screen=({
-    title
+    message,victory
 }:ScreenProps)=>{
     return(
-        <h1> Turn { title }</h1>
+        <h1>
+            {victory? "Winnder "+victory : 'Turn '+message}
+        </h1>
     );
 }
 
 
 const Board=({
+    grid,
+    setGrid,
     turn, 
     setTurn,
-    moves,
-    handleCheck,
     victory, 
     setVictory
 }:BoardProps)=>{
     const handleBoard= (row: number, col: number )=>{
         if(victory)return;
-        if( moves[row][col].length > 0 ) return;
-        const newData= [...moves]; 
+        if( grid[row][col].length > 0 ) return;
+        const newData= [...grid]; 
         const mark = turn ? 'X' : 'O';
         newData[row][col] = mark;
-        handleCheck( newData);
+        setGrid( newData);
         if(checkWin( newData, mark, row, col )){
             alert(turn ? 'X' : 'O')
             setVictory(turn ? 'X' : 'O');
@@ -93,7 +95,7 @@ const Board=({
         setTurn( !turn );
     }
 
-    const grid = moves.map(( row , rowIndex) => (
+    const currGrid = grid.map(( row , rowIndex) => (
         <div key={ rowIndex} className= "board-row">
           {row.map(( cell , colIndex ) => (
             <Square
@@ -106,28 +108,31 @@ const Board=({
     ));
     return(
         <div>
-            {grid}
+            {currGrid}
         </div>
     )
 };
 
 const Game=()=>{
-    const [ moves, setMoves]=useState<string[][]>(data( rowCount, colCount));
+    const [ grid, setGrid]=useState<string[][]>(data( rowCount, colCount));
     const [victory, setVictory]= useState<string>();
     const [ turn, setTurn]=useState( true);
     function handleReset(){
-        setMoves( data( rowCount, colCount));
+        setGrid( data( rowCount, colCount));
         setVictory(undefined);
         setTurn(true);
     }
     return (
         <div>
-            <Screen title={ turn ? 'X' : 'O'}/>
+            <Screen 
+                message={ turn ? 'X' : 'O'}
+                victory={victory ? (turn ? 'X' : 'O'): undefined}
+            />
             <Board 
                 turn={ turn} 
                 setTurn={ setTurn} 
-                moves={ moves} 
-                handleCheck={ setMoves}
+                grid={ grid} 
+                setGrid={ setGrid}
                 victory={victory}
                 setVictory={setVictory}
                 />

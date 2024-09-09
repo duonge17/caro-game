@@ -1,6 +1,6 @@
 export interface BoardProps{
-    moves:string[][]
-    handleCheck:(moves :string[][])=>void
+    grid: string[][]
+    setGrid:(moves :string[][])=>void
     turn:boolean
     setTurn:(turn: boolean)=>void
     victory:string| undefined
@@ -11,5 +11,6 @@ export interface SquareProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
     value:string
 }
 export interface ScreenProps {
-    title:string
+    message:string
+    victory:string | undefined
 }
