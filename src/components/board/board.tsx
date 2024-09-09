@@ -81,6 +81,9 @@ const Board=({
     victory, 
     setVictory
 }:BoardProps)=>{
+    if(!grid){
+        return <h1>Something went wrong</h1>
+    }
     const handleBoard= (row: number, col: number )=>{
         if(victory)return;
         if( grid[row][col].length > 0 ) return;
@@ -114,9 +117,12 @@ const Board=({
 };
 
 const Game=()=>{
-    const [ grid, setGrid]=useState<string[][]>(data( rowCount, colCount));
+    const [ grid, setGrid]=useState<string[][] |undefined>();
     const [victory, setVictory]= useState<string>();
     const [ turn, setTurn]=useState( true);
+    if(!grid){
+        setGrid(data( rowCount, colCount))
+    }
     function handleReset(){
         setGrid( data( rowCount, colCount));
         setVictory(undefined);

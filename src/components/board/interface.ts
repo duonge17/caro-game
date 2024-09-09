@@ -1,5 +1,5 @@
 export interface BoardProps{
-    grid: string[][]
+    grid: string[][]|undefined
     setGrid:(moves :string[][])=>void
     turn:boolean
     setTurn:(turn: boolean)=>void
